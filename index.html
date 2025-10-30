@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B2B Website Project Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .scroll-y {
+            overflow-y: auto;
+            max-height: calc(100vh - 400px); /* Adjust max-height dynamically */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-slate-800 antialiased min-h-screen">
+
+    <div id="app" class="flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-md p-4 sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+                <h1 class="text-3xl font-extrabold text-indigo-700">B2B Project Dashboard</h1>
+                <p class="text-sm text-slate-500 mt-1 md:mt-0">Interactive Scope & Progress Tracker based on the Implementation Plan</p>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="max-w-7xl mx-auto w-full flex-grow p-4 md:p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column: Summary & Visualization -->
+                <section class="lg:col-span-1 flex flex-col space-y-8">
+                    <!-- Overall Progress Card -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-indigo-100">
+                        <h2 class="text-xl font-bold mb-4 flex items-center text-indigo-700">
+                            &#9881; Project Completion Status
+                        </h2>
+                        <div class="chart-container">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="text-4xl font-extrabold text-slate-800" id="completionPercentage">0%</p>
+                            <p class="text-sm text-slate-500 mt-1">Total Deliverables Complete</p>
+                        </div>
+                    </div>
+
+                    <!-- Project Summary & Tech Stack -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-indigo-100">
+                        <h2 class="text-xl font-bold text-indigo-700 mb-4">&#9733; Key Technology Stack</h2>
+                        <p class="text-sm text-slate-600 mb-4">This section details the critical technologies required to deliver the project as outlined in the plan.</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="text-indigo-500 mr-2">&#10003;</span> **Platform:** Webflow (CMS & Hosting)</li>
+                            <li class="flex items-center"><span class="text-indigo-500 mr-2">&#10003;</span> **Scheduling:** Calendly</li>
+                            <li class="flex items-center"><span class="text-indigo-500 mr-2">&#10003;</span> **Tracking:** GTM / GA4</li>
+                            <li class="flex items-center"><span class="text-indigo-500 mr-2">&#10003;</span> **Data Viz:** Custom JS Library (e.g., Chart.js)</li>
+                            <li class="flex items-center"><span class="text-indigo-500 mr-2">&#10003;</span> **Automation:** Zapier or Make</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Right Column: Interactive Deliverable Tracker -->
+                <section class="lg:col-span-2">
+                    <!-- Phase Navigation/Filter -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg border border-indigo-100 mb-6">
+                        <h2 class="text-xl font-bold text-indigo-700 mb-3">Phase Filter</h2>
+                        <p class="text-sm text-slate-600 mb-4">Select a phase to view its specific deliverables and track their status. This helps focus exploration on current work streams.</p>
+                        <div id="phaseButtons" class="flex flex-wrap gap-2">
+                            <button data-phase="0" class="phase-btn px-4 py-2 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition duration-150">All Deliverables</button>
+                            <button data-phase="1" class="phase-btn px-4 py-2 text-sm font-semibold rounded-lg bg-gray-200 text-slate-700 hover:bg-indigo-500 hover:text-white transition duration-150">Phase 1: Foundation</button>
+                            <button data-phase="2" class="phase-btn px-4 py-2 text-sm font-semibold rounded-lg bg-gray-200 text-slate-700 hover:bg-indigo-500 hover:text-white transition duration-150">Phase 2: Dynamic Content</button>
+                            <button data-phase="3" class="phase-btn px-4 py-2 text-sm font-semibold rounded-lg bg-gray-200 text-slate-700 hover:bg-indigo-500 hover:text-white transition duration-150">Phase 3: Lead Capture</button>
+                            <button data-phase="4" class="phase-btn px-4 py-2 text-sm font-semibold rounded-lg bg-gray-200 text-slate-700 hover:bg-indigo-500 hover:text-white transition duration-150">Phase 4: Pre-Launch QA</button>
+                            <button data-phase="5" class="phase-btn px-4 py-2 text-sm font-semibold rounded-lg bg-gray-200 text-slate-700 hover:bg-indigo-500 hover:text-white transition duration-150">Phase 5: Maintenance</button>
+                        </div>
+                    </div>
+
+                    <!-- Deliverable List -->
+                    <div id="deliverableList" class="space-y-4 scroll-y p-1 -m-1">
+                        <!-- Deliverable Cards will be injected here by JS -->
+                    </div>
+
+                    <!-- Dynamic Contextual Insight -->
+                    <div class="bg-indigo-50 p-4 rounded-xl mt-6">
+                        <h3 class="text-lg font-bold text-indigo-800 mb-2">Qualitative Project Insight</h3>
+                        <p id="qualitativeInsight" class="text-sm text-indigo-700"></p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const projectData = [
+            { id: 1, phase: 1, phaseName: "Foundation & Structure", goal: "Establish a robust, high-performance base in Webflow...", name: "Webflow Project Setup", description: "Define global styles, variables, and project structure (naming conventions, folder organization).", complete: false },
+            { id: 2, phase: 1, phaseName: "Foundation & Structure", goal: "Establish a robust, high-performance base in Webflow...", name: "Brand Asset Implementation", description: "Accurately translate brand guidelines (typography, color palette, logo usage, tone) into the Webflow Style Guide. Create reusable Components.", complete: false },
+            { id: 3, phase: 1, phaseName: "Foundation & Structure", goal: "Establish a robust, high-performance base in Webflow...", name: "Initial SEO and Performance Baseline", description: "Configure fundamental SEO settings (sitemap, robots.txt, default meta tags). Optimize image compression and loading (lazy loading).", complete: false },
+            { id: 4, phase: 1, phaseName: "Foundation & Structure", goal: "Establish a robust, high-performance base in Webflow...", name: "Base Responsive Layout", description: "Develop core template layouts (Homepage, Case Study, Blog Post, Landing Page) with full mobile, tablet, and desktop responsiveness.", complete: false },
+
+            { id: 5, phase: 2, phaseName: "Dynamic Content & Storytelling", goal: "Integrate the Webflow CMS and implement interactivity and complex data visualization features...", name: "CMS Structure Design", description: "Define and build CMS Collections for key dynamic content (e.g., Case Studies, Team Members, Blog Posts, Services/Features).", complete: false },
+            { id: 6, phase: 2, phaseName: "Dynamic Content & Storytelling", goal: "Integrate the Webflow CMS and implement interactivity and complex data visualization features...", name: "Interactivity & Animations", description: "Implement subtle, performance-friendly animations (e.g., scroll-triggered effects, Lottie files, micro-interactions) to enhance user experience.", complete: false },
+            { id: 7, phase: 2, phaseName: "Dynamic Content & Storytelling", goal: "Integrate the Webflow CMS and implement interactivity and complex data visualization features...", name: "Interactive Data Visuals Integration", description: "Select and integrate a third-party visualization library (e.g., Chart.js, D3.js, or an embedded dashboard tool).", complete: false },
+            { id: 8, phase: 2, phaseName: "Dynamic Content & Storytelling", goal: "Integrate the Webflow CMS and implement interactivity and complex data visualization features...", name: "Dynamic Template Development", description: "Design and link dynamic templates (e.g., individual Case Study pages) to their respective CMS collections.", complete: false },
+
+            { id: 9, phase: 3, phaseName: "Lead Capture & Optimization", goal: "Seamlessly integrate lead capture tools and custom forms, ensuring all interactions are trackable...", name: "Custom Form Development", description: "Create and style required lead capture forms (Contact Us, Newsletter Signup). Implement native Webflow form validation.", complete: false },
+            { id: 10, phase: 3, phaseName: "Lead Capture & Optimization", goal: "Seamlessly integrate lead capture tools and custom forms, ensuring all interactions are trackable...", name: "Calendly Integration", description: "Embed Calendly widgets for direct booking/scheduling (e.g., on the Contact page or dedicated demo page).", complete: false },
+            { id: 11, phase: 3, phaseName: "Lead Capture & Optimization", goal: "Seamlessly integrate lead capture tools and custom forms, ensuring all interactions are trackable...", name: "Conversion Tracking Implementation", description: "Set up Google Tag Manager (GTM) and GA4 to track: 1. Custom Form Submissions, 2. Calendly booking clicks/conversions, and 3. Key site navigation events.", complete: false },
+            { id: 12, phase: 3, phaseName: "Lead Capture & Optimization", goal: "Seamlessly integrate lead capture tools and custom forms, ensuring all interactions are trackable...", name: "Confirmation/Thank You Pages", description: "Design optimized 'Thank You' pages/modals for successful form submissions and bookings.", complete: false },
+
+            { id: 13, phase: 4, phaseName: "Pre-Launch Optimization & QA", goal: "Conduct final optimization, quality assurance, and cross-platform testing before deploying the site.", name: "Speed and Performance Audit", description: "Utilize tools (PageSpeed Insights, Lighthouse) to identify and correct slow loading elements and minimize Cumulative Layout Shift (CLS).", complete: false },
+            { id: 14, phase: 4, phaseName: "Pre-Launch Optimization & QA", goal: "Conduct final optimization, quality assurance, and cross-platform testing before deploying the site.", name: "SEO Deep Dive", description: "Review all canonical tags, meta descriptions, image alt text, and header structure (`H1`, `H2`, etc.) to maximize organic search visibility.", complete: false },
+            { id: 15, phase: 4, phaseName: "Pre-Launch Optimization & QA", goal: "Conduct final optimization, quality assurance, and cross-platform testing before deploying the site.", name: "Cross-Browser/Device Testing", description: "Verify full functional and aesthetic consistency across major browsers and various mobile/tablet resolutions.", complete: false },
+            { id: 16, phase: 4, phaseName: "Pre-Launch Optimization & QA", goal: "Conduct final optimization, quality assurance, and cross-platform testing before deploying the site.", name: "Security Configuration", description: "Configure SSL/CDN settings and confirm all third-party integrations (APIs, custom code) are securely embedded.", complete: false },
+
+            { id: 17, phase: 5, phaseName: "Ongoing Maintenance & Enhancement", goal: "Define and execute a continuous improvement plan to ensure long-term reliability and consistency.", name: "Webflow Backups and Version Control", description: "Maintain Site Reliability by performing weekly backups and version control before major changes.", complete: false },
+            { id: 18, phase: 5, phaseName: "Ongoing Maintenance & Enhancement", goal: "Define and execute a continuous improvement plan to ensure long-term reliability and consistency.", name: "Code and Integration Troubleshooting", description: "Resolve custom code bugs, fix broken API keys, and update embedded scripts as needed.", complete: false },
+            { id: 19, phase: 5, phaseName: "Ongoing Maintenance & Enhancement", goal: "Define and execute a continuous improvement plan to ensure long-term reliability and consistency.", name: "Content Updates (CMS)", description: "Manage and publish new CMS items (blog, case studies) on an ongoing basis.", complete: false },
+            { id: 20, phase: 5, phaseName: "Ongoing Maintenance & Enhancement", goal: "Define and execute a continuous improvement plan to ensure long-term reliability and consistency.", name: "Performance Re-audits", description: "Monitor Core Web Vitals and adjust assets or scripts monthly as performance degrades.", complete: false },
+        ];
+
+        let currentFilter = 0;
+        let progressChart;
+
+        function calculateProgress() {
+            const total = projectData.length;
+            const completed = projectData.filter(d => d.complete).length;
+            const percentage = total > 0 ? ((completed / total) * 100).toFixed(0) : 0;
+            return { total, completed, percentage };
+        }
+
+        function updateChart() {
+            const { completed, total } = calculateProgress();
+            const pending = total - completed;
+
+            if (progressChart) {
+                progressChart.data.datasets[0].data = [completed, pending];
+                progressChart.update();
+            } else {
+                const ctx = document.getElementById('progressChart').getContext('2d');
+                progressChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'Pending'],
+                        datasets: [{
+                            data: [completed, pending],
+                            backgroundColor: ['rgb(16, 185, 129)', 'rgb(226, 232, 240)'],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '75%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: { family: 'Inter' }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const label = context.label || '';
+                                        const value = context.parsed;
+                                        return `${label}: ${value} items`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            document.getElementById('completionPercentage').textContent = `${calculateProgress().percentage}%`;
+        }
+
+        function updateQualitativeInsight(percentage) {
+            let insight = "";
+            if (percentage < 10) {
+                insight = "Project Initiation: Focus is on planning and setting up Phase 1 (Foundation). The critical brand and SEO baselines must be established first.";
+            } else if (percentage < 30) {
+                insight = "Phase 1 Completion: Foundation is largely complete. Key focus shifts to Phase 2, which involves complex CMS structure and data visualization integration.";
+            } else if (percentage < 60) {
+                insight = "Execution Phase: The core dynamic content and interactive elements are in development (Phase 2). This phase requires close collaboration between development and content teams.";
+            } else if (percentage < 85) {
+                insight = "Optimization and Conversion Focus: Lead capture tools (Calendly, forms) are being integrated and tracked (Phase 3). Project emphasis moves to rigorous QA and optimization (Phase 4).";
+            } else if (percentage < 100) {
+                insight = "Pre-Launch Readiness: All major development is complete. Final efforts are concentrated on security configuration, performance audits, and cross-browser testing (Phase 4).";
+            } else {
+                insight = "Project Launched! The site is live and the focus transitions entirely to Phase 5: Ongoing Maintenance, Enhancement, and monitoring of Core Web Vitals.";
+            }
+            document.getElementById('qualitativeInsight').textContent = insight;
+        }
+
+        function renderDeliverables() {
+            const listContainer = document.getElementById('deliverableList');
+            listContainer.innerHTML = '';
+            const filteredData = currentFilter === 0
+                ? projectData
+                : projectData.filter(d => d.phase === currentFilter);
+
+            if (filteredData.length === 0) {
+                listContainer.innerHTML = '<p class="text-slate-500 p-4 bg-white rounded-xl shadow-lg">No deliverables found for the selected phase.</p>';
+                return;
+            }
+
+            filteredData.forEach(item => {
+                const card = document.createElement('div');
+                card.id = `deliverable-${item.id}`;
+                card.className = `bg-white p-5 rounded-xl shadow-md transition-all duration-300 ${item.complete ? 'border-l-4 border-emerald-500' : 'border-l-4 border-indigo-400'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow">
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${item.complete ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}">
+                                Phase ${item.phase}: ${item.phaseName.split(' ')[0]}
+                            </span>
+                            <h3 class="text-lg font-bold mt-2">${item.name}</h3>
+                            <p class="text-sm text-slate-500 mt-1">${item.description}</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer ml-4 flex-shrink-0">
+                            <input type="checkbox" data-id="${item.id}" ${item.complete ? 'checked' : ''} class="sr-only peer toggle-complete">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+
+            document.querySelectorAll('.toggle-complete').forEach(checkbox => {
+                checkbox.addEventListener('change', handleToggle);
+            });
+        }
+
+        function handleToggle(event) {
+            const id = parseInt(event.target.getAttribute('data-id'));
+            const item = projectData.find(d => d.id === id);
+            if (item) {
+                item.complete = event.target.checked;
+                updateView();
+            }
+        }
+
+        function updateView() {
+            const { percentage } = calculateProgress();
+            updateChart();
+            renderDeliverables();
+            updateQualitativeInsight(parseFloat(percentage));
+        }
+
+        function handlePhaseFilter(event) {
+            const newFilter = parseInt(event.currentTarget.getAttribute('data-phase'));
+            currentFilter = newFilter;
+
+            document.querySelectorAll('.phase-btn').forEach(btn => {
+                if (parseInt(btn.getAttribute('data-phase')) === newFilter) {
+                    btn.classList.remove('bg-gray-200', 'text-slate-700');
+                    btn.classList.add('bg-indigo-600', 'text-white');
+                } else {
+                    btn.classList.add('bg-gray-200', 'text-slate-700');
+                    btn.classList.remove('bg-indigo-600', 'text-white');
+                }
+            });
+
+            updateView();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateView();
+
+            document.querySelectorAll('.phase-btn').forEach(btn => {
+                btn.addEventListener('click', handlePhaseFilter);
+            });
+        });
+    </script>
+</body>
+</html>
